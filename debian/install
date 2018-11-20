@@ -1,4 +1,3 @@
 datasafe-lite           usr/sbin/
 datasafe-lite-init      usr/sbin/
 *.conf      		etc/
-*.timer *.service	lib/systemd/system/

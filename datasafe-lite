@@ -63,14 +63,6 @@ def mount_backup_umount(args):
     # FIXME: only e2fsck if last-fsck-time is >1d ago?
     fsck(args)
 
-    # This dir has to be created IN ADVANCE, BY HAND, by a human --- why???
-    # FIXME: why can't this just go in /etc/fstab instead (with -o noauto)?
-    # Then, if fstab isn't set up, it will give an obvious error like:
-    #
-    #     mount: LABEL=vindalho: can't find in /etc/fstab.
-    #
-    # This also allows custom options to be added in the logical place.
-    assert os.path.isdir(args.mountpoint)
     subprocess.check_call(['mount', '--label', args.label, args.mountpoint])
     # FIXME: why is this necessary?
     # Can't we just tell rsnapshot not to run unless its destination already exists?

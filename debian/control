@@ -2,19 +2,29 @@ Source: datasafe-lite
 Section: utils
 Priority: optional
 Maintainer: Trent W. Buck <twb@cyber.com.au>
-Uploaders: Trent W. Buck <trentbuck@gmail.com>
-Build-Depends: debhelper (>= 10), dh-systemd
-Standards-Version: 3.9.8
+Build-Depends: debhelper (>= 11), dh-python,
+# This is for dh --with=python3
+ python3:any | python3-all:any | python3-dev:any | python3-all-dev:any
+Standards-Version: 4.2.1
 
 Package: datasafe-lite
 Architecture: all
-Depends: ${misc:Depends}, ${python3:Depends}, e2fsprogs, rsnapshot, mail-transport-agent
+Depends: ${misc:Depends}, ${python3:Depends},
+ e2fsprogs,
+ rsnapshot,
+ default-mta | mail-transport-agent
 # Recommends are only needed for datasafe-lite-init.
-Recommends: parted, wget, dosfstools
+Recommends:
+ parted,
+ wget,
+ dosfstools
 Suggests: logcheck
 Description: rsnapshot-based USB HDD backup
  This package implements an archive regimen using rsnapshot to USB HDDs.
- The idea is that the user has two USB HDDs, one offsite, one plugged into the server.
- Each week they swap them over, thus retaining an offsite archive of documents for recovery.
+ The idea is that the user has two USB HDDs:
+ one offsite, one plugged into the server.
+ Each week they swap them over, thus
+ retaining an offsite archive of documents for recovery.
  .
- Each USB HDD is provisioned as ext3, with a small FAT32 partition including a windows ext3 driver.
+ Each USB HDD is provisioned as ext3, with
+ a small FAT32 partition including a windows ext3 driver.
