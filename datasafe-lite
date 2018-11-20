@@ -1,0 +1,158 @@
+#!/usr/bin/python3
+
+import argparse
+import datetime
+import os
+import subprocess
+import email.mime.text
+import email.utils
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--label', default='DatasafeLite')
+    parser.add_argument('--mountpoint', default='/mnt/DatasafeLite',
+                        help='WARNING: config file *MUST* be a subdir of this path')
+    parser.add_argument('--evidentiary-filename', default='DatasafeLite.txt',
+                        help='this file must exist in the root of the USB HDD,'
+                        ' to prove that it is the correct USB key')
+    parser.add_argument('--config', default='/etc/datasafe-lite.conf')
+    args = parser.parse_args()
+    try:
+        mount_backup_umount(args)
+    except Exception as e:
+        # Send failure email.
+        m = email.mime.text.MIMEText(_failure_template.format(
+            hostname=os.uname().nodename,
+            date=datetime.date.today(),
+            boring_technical_details=str(e)))  # FIXME: include full backtrace!
+        m['From'] = 'Datasafe Lite backup script <noreply>'
+        m['Date'] = email.utils.formatdate()
+        m['Subject'] = 'Backup FAILED! - {} Datasafe Lite'.format(os.uname().nodename)
+        m['To'] = 'root'        # FIXME
+        m['CC'] = 'support@cyber.com.au'
+        subprocess.run(
+            ['/usr/sbin/sendmail', '-oi', '-t', '-v'],
+            check=True,
+            universal_newlines=True,
+            input=str(m))
+        raise
+    else:
+        # Send success email.  FIXME: duplication with above.
+        m = email.mime.text.MIMEText(_success_template.format(
+            hostname=os.uname().nodename),
+            date=datetime.date.today())
+        m['From'] = 'Datasafe Lite backup script <noreply>'
+        m['Date'] = email.utils.formatdate()
+        m['Subject'] = 'Backup OK - {} Datasafe Lite'.format(os.uname().nodename)
+        subprocess.run(
+            ['/usr/sbin/sendmail', '-oi', '-t', '-v'],
+            check=True,
+            universal_newlines=True,
+            input=str(m))
+
+
+def mount_backup_umount(args):
+    now = datetime.datetime.now()
+    subprocess.check_call(['rsnapshot', '-c', args.config, 'configtest'])  # crash if config is broken
+    subprocess.check_call(['blkid', '--label', args.label])  # crash unless device exists
+
+    # If we crashed last time and it's still mounted, unmount it.
+    umount(args)
+
+    # FIXME: only e2fsck if last-fsck-time is >1d ago?
+    fsck(args)
+
+    # This dir has to be created IN ADVANCE, BY HAND, by a human --- why???
+    # FIXME: why can't this just go in /etc/fstab instead (with -o noauto)?
+    # Then, if fstab isn't set up, it will give an obvious error like:
+    #
+    #     mount: LABEL=vindalho: can't find in /etc/fstab.
+    #
+    # This also allows custom options to be added in the logical place.
+    assert os.path.isdir(args.mountpoint)
+    subprocess.check_call(['mount', '--label', args.label, args.mountpoint])
+    # FIXME: why is this necessary?
+    # Can't we just tell rsnapshot not to run unless its destination already exists?
+    # Are/were we concerned about someone plugging AMC's HDD into ISRC's server???
+    assert os.path.isfile(os.path.join(args.mountpoint, args.evidentiary_filename))
+
+    # FIXME: why is this necessary?  Can't we see it from the logs?
+    with open(os.path.join(args.mountpoint, 'LastSuccessfulMountTime.txt')) as f:
+        print(now, file=f)
+
+    # NOTE: this section is based on
+    # datasafe.git:bootstrap:overlay/usr/local/bin/datasafe-rsnapshot-wrapper.
+    # See that file for an explanation of why this is so horrible.
+    if 1 == now.day == now.month:   # new year's day
+        subprocess.check_call(['rsnapshot', '-c', args.config, 'yearly'])
+    if 1 == now.day:                # 1st of any month
+        subprocess.check_call(['rsnapshot', '-c', args.config, 'monthly'])
+    if 1 == now.isoweekday():       # Monday
+        subprocess.check_call(['rsnapshot', '-c', args.config, 'weekly'])
+    try:
+        subprocess.check_call(['rsnapshot', '-c', args.config, 'sync'])
+    except subprocess.CalledProcessError as e:
+        if e.returncode == 2:
+            pass
+        else:
+            raise
+    subprocess.check_call(['rsnapshot', '-c', args.config, 'daily'])
+
+    umount(args)
+
+
+def umount(args):
+    try:
+        subprocess.check_output(
+            ['umount', 'LABEL={}'.format(args.label)],
+            stderr=subprocess.PIPE,
+            universal_newlines=True)
+    except subprocess.CalledProcessError as e:
+        if (e.returncode == 1 and
+            e.stderr == 'umount: LABEL={}: not mounted.\n'.format(args.label)):
+            # ignore EXPECTED error
+            pass
+        else:
+            raise
+
+
+def fsck(args):
+    try:
+        subprocess.check_call(['e2fsck', '-p', 'LABEL={}'.format(args.label)])
+    except subprocess.CalledProcessError as e:
+        if e.returncode in (1, 4, 1+4):
+            pass                # ignore HARMLESS error
+        else:
+            raise
+
+
+_success_template = '''
+This is an automated email from the Datasafe Lite script on {hostname}.
+It backs up to a portable USB hard drive plugged into {hostname}.
+
+The {date} backup completed successfully.
+
+Remember to "rotate" your drives regularly, so that
+one drive is always plugged in, and
+one drive is always offsite.
+'''
+
+_failure_template = '''
+BACKUP FAILED!
+
+This is an automated email from the Datasafe Lite script on {hostname}.
+It backs up to a portable USB hard drive plugged into {hostname}.
+
+The {date} backup failed!
+
+For assistance contact https://www.cyberitsolutions.com.au/
+The following technical information will help them debug the problem.
+
+
+{boring_technical_details}
+'''
+
+
+if __name__ == '__main__':
+    main()
