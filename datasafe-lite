@@ -4,6 +4,7 @@ import argparse
 import datetime
 import os
 import subprocess
+import traceback
 import email.mime.text
 import email.utils
 
@@ -20,12 +21,12 @@ def main():
     args = parser.parse_args()
     try:
         mount_backup_umount(args)
-    except Exception as e:
+    except Exception:
         # Send failure email.
         m = email.mime.text.MIMEText(_failure_template.format(
             hostname=os.uname().nodename,
             date=datetime.date.today(),
-            boring_technical_details=str(e)))  # FIXME: include full backtrace!
+            boring_technical_details=str(traceback.format_exc())))
         m['From'] = 'Datasafe Lite backup script <noreply>'
         m['Date'] = email.utils.formatdate()
         m['Subject'] = 'Backup FAILED! - {} Datasafe Lite'.format(os.uname().nodename)
@@ -113,7 +114,7 @@ def fsck(args):
     try:
         subprocess.check_call(['e2fsck', '-p', 'LABEL={}'.format(args.label)])
     except subprocess.CalledProcessError as e:
-        if e.returncode in (1, 4, 1+4):
+        if e.returncode in (1, 4, 1 + 4):
             pass                # ignore HARMLESS error
         else:
             raise
