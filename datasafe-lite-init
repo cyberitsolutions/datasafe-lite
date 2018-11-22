@@ -11,7 +11,7 @@ def main():
 
     # FIXME: add an "are you REALLY SURE?" prompt here.
 
-    subprocess.check_call(['wipefs', args.device])
+    subprocess.check_call(['wipefs', '--all', args.device])
     subprocess.call(['blkdiscard', args.device])  # usually fails; we don't care.
     subprocess.check_call(['parted',
                            '--script',
@@ -20,28 +20,33 @@ def main():
                           'mklabel msdos'.split() +
                           'mkpart primary 0% 128MiB '.split() +
                           'mkpart primary 128MiB 100%'.split())
-    subprocess.check_call(['mkfs', '--type=vfat', '--label=FSDriver', '{}1'.format(args.device)])
-    subprocess.check_call(['mkfs', '--type=ext3', '--label=DatasafeLite', '{}2'.format(args.device)])
+    # If we run mkfs right after parted, /dev/sdX1 won't exist yet, because FUCK YOU, UDEV.
+    # Even though parted has already told the kernel to reread the disk, it doesn't wait?
+    # And MAYBE blockdev DOES wait?
+    subprocess.check_call(['blockdev', '--rereadpt', args.device])
+    # NOTE: "FSDRIVER" label is so named due to FAT label limitations: 8 byte max, uppercase only.
+    subprocess.check_call(['mkfs.vfat', '-n', 'FSDRIVER', '{}1'.format(args.device)])
+    subprocess.check_call(['mkfs.ext3', '-L', 'DatasafeLite', '{}2'.format(args.device)])
     subprocess.check_call('install -dm700 -oroot -groot /mnt/umount-me'.split())
-    subprocess.check_call('mount LABEL=FSDriver /mnt/umount-me'.split())
+    subprocess.check_call('mount LABEL=FSDRIVER /mnt/umount-me'.split())
     # FIXME: for fuck's sake, AT LEAST find an HTTPS link!
     subprocess.check_call('wget --directory-prefix=/mnt/umount-me http://www.fs-driver.org/download/Ext2IFS_1_12.exe'.split())
     with open('/mnt/umount-me/README.txt', 'w') as f:
-        print(_fsdriver_readme_str, f)
-    subprocess.check_call('umount LABEL=FSDriver'.split())
+        print(_FSDRIVER_readme_str, file=f)
+    subprocess.check_call('umount LABEL=FSDRIVER'.split())
 
     subprocess.check_call('mount LABEL=DatasafeLite /mnt/umount-me'.split())
     # rsnapshot checks that this dir exists before it backs up into it
     subprocess.check_call('install -dm755 -oroot -groot /mnt/umount-me/DATA'.split())
     with open('/mnt/umount-me/README.txt', 'w') as f:
-        print(_datasafelite_readme_str, f)
+        print(_datasafelite_readme_str, file=f)
     subprocess.check_call('umount LABEL=DatasafeLite'.split())
 
 
 # NOTE: copy-pasted from what I found on AMC's HDD.
 # (Except for the smart quotes, which I asciified, since this file will probably be viewed in notepad.)
 # FIXME: should also ensure CRLF, not LF, for same reason!
-_fsdriver_readme_str = '''
+_FSDRIVER_readme_str = '''
 Installing Ext2 driver on Windows
 
 Start installing the driver found on the readable part of the external
