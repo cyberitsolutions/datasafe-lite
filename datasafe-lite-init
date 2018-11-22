@@ -25,7 +25,8 @@ def main():
     # And MAYBE blockdev DOES wait?
     subprocess.check_call(['blockdev', '--rereadpt', args.device])
     # NOTE: "FSDRIVER" label is so named due to FAT label limitations: 8 byte max, uppercase only.
-    subprocess.check_call(['mkfs.vfat', '-n', 'FSDRIVER', '{}1'.format(args.device)])
+    # NOTE: Force a FAT32 (default is FAT16 for small volumes), because Win10 refuses to mount FAT16.
+    subprocess.check_call(['mkfs.vfat', '-F32', '-n', 'FSDRIVER', '{}1'.format(args.device)])
     subprocess.check_call(['mkfs.ext3', '-L', 'DatasafeLite', '{}2'.format(args.device)])
     subprocess.check_call('install -dm700 -oroot -groot /mnt/umount-me'.split())
     subprocess.check_call('mount LABEL=FSDRIVER /mnt/umount-me'.split())
@@ -55,7 +56,7 @@ Start installing the driver found on the readable part of the external
 drive. At the time of writing (13 May 2014), this was named "Ext2IFS_1_11a.exe". This driver
 can also be obtained from http://www.fs-driver.org/download.html
 
-Go through the installation, mostly just clicking Next, as most options dont
+Go through the installation, mostly just clicking Next, as most options don't
 need to be changed. Items that do need changing are:
 
 * Enable the read-only option.
