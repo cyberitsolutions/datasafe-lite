@@ -69,7 +69,8 @@ def mount(args) -> None:
     subprocess.check_call(['install', '-dm0', '-oroot', '-groot', args.mountpoint])
     subprocess.check_call(['mount', '--label', args.label, args.mountpoint])
     # Put an easy-to-read timestamp onto the drive itself.
-    with open(os.path.join(args.mountpoint, 'STATUS.txt'), 'w') as f:
+    # FIXME: remove newline= after customers have Win 10 1809+.
+    with open(os.path.join(args.mountpoint, 'STATUS.txt'), 'w', newline='\r\n') as f:
         print('A Datasafe Lite backup of {} was last attempted on {}'.format(args.hostname, args.now), file=f)
 
 
@@ -127,7 +128,8 @@ def backup(args) -> None:
     subprocess.check_call(['rsnapshot', '-c', args.config, 'daily'])
 
     # Put an easy-to-read timestamp onto the drive itself.
-    with open(os.path.join(args.mountpoint, 'STATUS.txt'), 'a') as f:
+    # FIXME: remove newline= after customers have Win 10 1809+.
+    with open(os.path.join(args.mountpoint, 'STATUS.txt'), 'a', newline='\r\n') as f:
         print('A Datasafe Lite backup of {} was last completed on {}'.format(args.hostname, args.now), file=f)
 
 

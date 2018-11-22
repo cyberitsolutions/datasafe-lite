@@ -31,14 +31,16 @@ def main():
     subprocess.check_call('mount LABEL=FSDRIVER /mnt/umount-me'.split())
     # FIXME: for fuck's sake, AT LEAST find an HTTPS link!
     subprocess.check_call('wget --directory-prefix=/mnt/umount-me http://www.fs-driver.org/download/Ext2IFS_1_12.exe'.split())
-    with open('/mnt/umount-me/README.txt', 'w') as f:
+    # FIXME: remove newline= after customers have Win 10 1809+.
+    with open('/mnt/umount-me/README.txt', 'w', newline='\r\n') as f:
         print(_FSDRIVER_readme_str, file=f)
     subprocess.check_call('umount LABEL=FSDRIVER'.split())
 
     subprocess.check_call('mount LABEL=DatasafeLite /mnt/umount-me'.split())
     # rsnapshot checks that this dir exists before it backs up into it
     subprocess.check_call('install -dm755 -oroot -groot /mnt/umount-me/DATA'.split())
-    with open('/mnt/umount-me/README.txt', 'w') as f:
+    # FIXME: remove newline= after customers have Win 10 1809+.
+    with open('/mnt/umount-me/README.txt', 'w', newline='\r\n') as f:
         print(_datasafelite_readme_str, file=f)
     subprocess.check_call('umount LABEL=DatasafeLite'.split())
 
