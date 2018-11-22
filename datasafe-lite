@@ -153,7 +153,7 @@ The {date} backup completed successfully.
 Remember to "rotate" your drives regularly, so that
 one drive is always plugged in, and
 one drive is always offsite.
-'''
+'''.strip()
 
 _failure_template = '''
 BACKUP FAILED!
@@ -168,7 +168,7 @@ The following technical information will help them debug the problem.
 
 
 {boring_technical_details}
-'''
+'''.strip()
 
 
 if __name__ == '__main__':
