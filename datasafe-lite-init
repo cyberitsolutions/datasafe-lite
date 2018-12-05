@@ -17,9 +17,9 @@ def main():
                            '--script',
                            '--align=optimal',
                            args.device] +
-                          'mklabel msdos'.split() +
-                          'mkpart primary 0% 128MiB '.split() +
-                          'mkpart primary 128MiB 100%'.split())
+                          'mklabel gpt'.split() +
+                          'mkpart FSDRIVER 0% 128MiB '.split() +
+                          'mkpart DatasafeLite 128MiB 100%'.split())
     # If we run mkfs right after parted, /dev/sdX1 won't exist yet, because FUCK YOU, UDEV.
     # Even though parted has already told the kernel to reread the disk, it doesn't wait?
     # And MAYBE blockdev DOES wait?

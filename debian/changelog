@@ -1,3 +1,10 @@
+datasafe-lite (3.0~a2) unstable; urgency=medium
+
+  * Use GPT, not MBR ("MSDOS") partitioning for the USB HDD.
+    This fixes datasafe-lite-init for USB HDD capacities >2TB.
+
+ -- Trent W. Buck <trentbuck@gmail.com>  Wed, 05 Dec 2018 17:56:13 +1100
+
 datasafe-lite (3.0~a1) unstable; urgency=medium
 
   * Initial debianization
