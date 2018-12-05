@@ -85,7 +85,7 @@ def umount(args) -> None:
         if (e.returncode == 1 and
             e.stderr == 'umount: LABEL={}: not mounted.\n'.format(args.label)):
             print('<6>ignoring failure to umount an unmounted filesystem', file=sys.stderr, flush=True)
-        # Debian 10 version of "it's not mounted".
+        # Debian 9 version of "it's not mounted".
         elif (e.returncode == 32 and
               e.stderr == 'umount: LABEL={}: mountpoint not found\n'.format(args.label)):
             print('<6>ignoring failure to umount an unmounted filesystem', file=sys.stderr, flush=True)
