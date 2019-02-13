@@ -1,3 +1,12 @@
+datasafe-lite (3.0~a3) unstable; urgency=medium
+
+  * Abort when e2fsck finds uncorrectable errors (exit code flag #4).
+    Cyber's avoid-fsck ignores flags #1 and #4.
+    Cyber's cyberbackup.sh ignores flags #1 and #2 (but not both together).
+    Debian's initramfs-tools fsck ignores only flag #1, we now match that.
+
+ -- Trent W. Buck <trentbuck@gmail.com>  Wed, 13 Feb 2019 12:14:09 +1100
+
 datasafe-lite (3.0~a2) unstable; urgency=medium
 
   * Use GPT, not MBR ("MSDOS") partitioning for the USB HDD.

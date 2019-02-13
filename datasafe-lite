@@ -102,8 +102,8 @@ def fsck(args) -> None:
         # FIXME: only e2fsck if last-fsck-time is >1d ago?
         subprocess.check_call(['e2fsck', '-p', 'LABEL={}'.format(args.label)])
     except subprocess.CalledProcessError as e:
-        if e.returncode in (1, 4, 1 + 4):
-            print('<6>fsck file system errors corrected and/or left uncorrected', file=sys.stderr, flush=True)
+        if e.returncode == 1:
+            print('<6>fsck file system errors corrected', file=sys.stderr, flush=True)
         else:
             raise
 
