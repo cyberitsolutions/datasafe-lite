@@ -130,7 +130,7 @@ def backup(args) -> None:
     # Put an easy-to-read timestamp onto the drive itself.
     # FIXME: remove newline= after customers have Win 10 1809+.
     with open(os.path.join(args.mountpoint, 'STATUS.txt'), 'a', newline='\r\n') as f:
-        print('A Datasafe Lite backup of {} was last completed on {}'.format(args.hostname, args.now), file=f)
+        print('A Datasafe Lite backup of {} was last completed on {}'.format(args.hostname, datetime.datetime.now()), file=f)
 
 
 def finish_email(args, m) -> None:
