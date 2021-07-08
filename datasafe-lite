@@ -17,6 +17,7 @@ def main() -> None:
         umount(args)  # If we crashed last time and it's still mounted, unmount it.
         fsck(args)
         mount(args)
+        usage_report = report_usage(args)
         backup(args)
         umount(args)
     except Exception:
@@ -32,6 +33,7 @@ def main() -> None:
         # Send success email.
         m = email.mime.text.MIMEText(_success_template.format(
             hostname=args.hostname,
+            usage_report=usage_report,
             date=args.today))
         m['Subject'] = 'Backup OK - {} Datasafe Lite'.format(os.uname().nodename)
         finish_email(args, m)
@@ -146,11 +148,30 @@ def finish_email(args, m) -> None:
         input=str(m))
 
 
+def report_usage(args) -> str:
+    s = os.statvfs(args.mountpoint)
+    bsize, blocks, bavail = s.f_bsize, s.f_blocks, s.f_bavail
+    is_nearly_full = bavail / blocks < 0.20  # <20% avail
+    return subprocess.run(
+        # FIXME: CPython3.5 has no numfmt equivalent! ☹
+        ['numfmt', '--to=si', '--suffix=B', '--field=1,5', '--padding=1'],
+        input='{} ({:.0%}) left of {} total{}'.format(
+            bavail * bsize,
+            bavail / blocks,
+            blocks * bsize,
+            ' (RUNNING LOW!)' if is_nearly_full else ''),
+        stdout=subprocess.PIPE,
+        check=True,
+        universal_newlines=True).stdout.strip()
+
+
 _success_template = '''
 This is an automated email from the Datasafe Lite script on {hostname}.
 It backs up to a portable USB hard drive plugged into {hostname}.
 
 The {date} backup completed successfully.
+
+Space check: {usage_report}
 
 Remember to "rotate" your drives regularly, so that
 one drive is always plugged in, and
