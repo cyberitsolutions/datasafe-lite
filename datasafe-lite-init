@@ -2,6 +2,7 @@
 
 import argparse
 import subprocess
+import time
 
 
 def main():
@@ -24,6 +25,9 @@ def main():
     # Even though parted has already told the kernel to reread the disk, it doesn't wait?
     # And MAYBE blockdev DOES wait?
     subprocess.check_call(['blockdev', '--rereadpt', args.device])
+    # It didn't wait, at least not long enough
+    # FIXME: Randomly throwing in a sleep to deal with these things is evil, do better
+    time.sleep(1)
     # NOTE: "FSDRIVER" label is so named due to FAT label limitations: 8 byte max, uppercase only.
     # NOTE: Force a FAT32 (default is FAT16 for small volumes), because Win10 refuses to mount FAT16.
     subprocess.check_call(['mkfs.vfat', '-F32', '-n', 'FSDRIVER', '{}1'.format(args.device)])
