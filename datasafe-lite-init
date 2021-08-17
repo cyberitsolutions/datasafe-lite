@@ -30,8 +30,8 @@ def main():
     time.sleep(1)
     # NOTE: "FSDRIVER" label is so named due to FAT label limitations: 8 byte max, uppercase only.
     # NOTE: Force a FAT32 (default is FAT16 for small volumes), because Win10 refuses to mount FAT16.
-    subprocess.check_call(['mkfs.vfat', '-F32', '-n', 'FSDRIVER', '{}1'.format(args.device)])
-    subprocess.check_call(['mkfs.ext3', '-L', 'DatasafeLite', '{}2'.format(args.device)])
+    subprocess.check_call(['mkfs.vfat', '-F32', '-n', 'FSDRIVER', '{}-part1'.format(args.device)])
+    subprocess.check_call(['mkfs.ext3', '-L', 'DatasafeLite', '{}-part2'.format(args.device)])
     subprocess.check_call('install -dm700 -oroot -groot /mnt/umount-me'.split())
     subprocess.check_call('mount LABEL=FSDRIVER /mnt/umount-me'.split())
     # FIXME: for fuck's sake, AT LEAST find an HTTPS link!
