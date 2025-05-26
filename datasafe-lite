@@ -47,6 +47,37 @@ def parse_args():
     parser.add_argument('--mountpoint', default='/mnt/DatasafeLite',
                         help='WARNING: config file *MUST* be a subdir of this path')
     parser.add_argument('--config', default='/etc/datasafe-lite.conf')
+    # This is a shitty workaround for Woods Furniture, who outsource mail to Outlook.com.
+    # In /etc/msmtprc they have "aliases /etc/aliases", and
+    # in /etc/aliases they have "default: system@woodsfurniture.com.au".
+    # But it still does not work, because outlook.com / Office365 validates
+    # not only the envelope RCPT TO, but also the data header To.
+    # (Mike's comments misleadingly claimed it was the data header From).
+    # Here is the actual error I see:
+    #
+    #     2025-05-26T12:38:49+1000 pve msmtp[679483]:
+    #         host=smtp.office365.com
+    #         tls=on
+    #         auth=on
+    #         user=system@woodsfurniture.com.au
+    #         from=system@woodsfurniture.com.au
+    #         recipients=system@woodsfurniture.com.au,support-pve@cyber.com.au
+    #         smtpstatus=550
+    #         smtpmsg='550 5.2.254 InvalidRecipientsException;
+    #                  Sender throttled due to continuous invalid recipients errors.;
+    #                  STOREDRV.Submission.Exception:InvalidRecipientsException;
+    #                  Failed to process message due to a permanent exception with message
+    #                  [BeginDiagnosticData]
+    #                      Recipient ?root? is not resolved.
+    #                      All recipients must be resolved before a message can be submitted.
+    #                      InvalidRecipientsException: Recipient ?root? is not resolved.
+    #                      All recipients must be resolved before a message can be submitted.
+    #                  [EndDiagnosticData]
+    #                  [Hostname=ME3P282MB1218.AUSP282.PROD.OUTLOOK.COM]'
+    #         errormsg='the server did not accept the mail'
+    #         exitcode=EX_UNAVAILABLE
+    parser.add_argument('--mail-to', default='root', help='who gets the emails')
+    # This is needed for customers who have not paid Cyber IT to read their emails for them.
     # These don't strictly belong here, but it's a convenient place to put them.
     parser.set_defaults(now=datetime.datetime.now())
     parser.set_defaults(today=datetime.date.today())
@@ -143,7 +174,7 @@ def finish_email(args, m) -> None:
     # FIXME: add more "this is an automatic message" headers, as seen in maxwell.
     m['From'] = 'Datasafe Lite backup script <noreply>'
     m['Date'] = email.utils.formatdate()
-    m['To'] = 'root'        # FIXME
+    m['To'] = args.mail_to
     m['CC'] = 'support-{}@cyber.com.au'.format(args.hostname)
     subprocess.run(
         ['/usr/sbin/sendmail', '-oi', '-t'],
