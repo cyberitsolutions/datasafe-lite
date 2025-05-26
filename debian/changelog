@@ -1,3 +1,18 @@
+datasafe-lite (3.0~a4) bookworm; urgency=medium
+
+  [ Trent W. Buck ]
+
+  * Add "3.7TB (44%) left of 8.4TB total" to success email
+  * Appease github with a basic README.
+  * On completion, log the end time (not the start time)
+
+  [ Mike Abrahall ]
+
+  * datasafe-lite-init: assume /dev/disk/by-id/X-partN (not /dev/XN)
+  * datasafe-lite-init: sleep 1s after blockdev --rereadpt
+
+ -- Trent W. Buck <trentbuck@gmail.com>  Mon, 26 May 2025 11:42:55 +1000
+
 datasafe-lite (3.0~a3) unstable; urgency=medium
 
   * Abort when e2fsck finds uncorrectable errors (exit code flag #4).
