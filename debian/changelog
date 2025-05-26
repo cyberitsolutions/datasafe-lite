@@ -1,10 +1,10 @@
-datasafe-lite (3.0~a5) UNRELEASED; urgency=medium
+datasafe-lite (3.0~a5) bookworm; urgency=medium
 
   * Work on Debian 12 (new umount error message).
   * Workaround outlook.com validating header To (not only envelope RCPT TO).
   * Add opt-out to not CC Cyber IT.
 
- -- Trent W. Buck <trentbuck@gmail.com>  Mon, 26 May 2025 14:01:53 +1000
+ -- Trent W. Buck <trentbuck@gmail.com>  Mon, 26 May 2025 14:05:03 +1000
 
 datasafe-lite (3.0~a4) bookworm; urgency=medium
 
