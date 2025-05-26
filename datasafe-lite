@@ -91,6 +91,10 @@ def umount(args) -> None:
         elif (e.returncode == 32 and
               e.stderr == 'umount: LABEL={}: mountpoint not found\n'.format(args.label)):
             print('<6>ignoring failure to umount an unmounted filesystem', file=sys.stderr, flush=True)
+        # Debian 12 version of "it's not mounted".
+        elif (e.returncode == 32 and
+            e.stderr == 'umount: LABEL={}: no mount point specified.\n'.format(args.label)):
+            print('<6>ignoring failure to umount an unmounted filesystem', file=sys.stderr, flush=True)
         else:
             raise
     try:
