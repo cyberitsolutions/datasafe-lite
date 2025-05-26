@@ -78,6 +78,10 @@ def parse_args():
     #         exitcode=EX_UNAVAILABLE
     parser.add_argument('--mail-to', default='root', help='who gets the emails')
     # This is needed for customers who have not paid Cyber IT to read their emails for them.
+    parser.add_argument('--customer-is-not-paying-for-monitoring',
+                        dest='customer_is_paying_for_monitoring',
+                        action='store_false',
+                        help='whether CyberIT gets a copy of emails')
     # These don't strictly belong here, but it's a convenient place to put them.
     parser.set_defaults(now=datetime.datetime.now())
     parser.set_defaults(today=datetime.date.today())
@@ -175,7 +179,8 @@ def finish_email(args, m) -> None:
     m['From'] = 'Datasafe Lite backup script <noreply>'
     m['Date'] = email.utils.formatdate()
     m['To'] = args.mail_to
-    m['CC'] = 'support-{}@cyber.com.au'.format(args.hostname)
+    if args.customer_is_paying_for_monitoring:
+        m['CC'] = 'support-{}@cyber.com.au'.format(args.hostname)
     subprocess.run(
         ['/usr/sbin/sendmail', '-oi', '-t'],
         check=True,
